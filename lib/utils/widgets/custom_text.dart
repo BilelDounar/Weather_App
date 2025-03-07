@@ -12,7 +12,7 @@ class CustomText {
       style: TextStyle(
         fontSize: fontSize,
         fontWeight: fontWeight ?? FontWeight.w400,
-        fontFamily: 'Sora',
+        fontFamily: 'Arial',
         color: color ?? Colors.white,
       ),
       overflow: TextOverflow.ellipsis,

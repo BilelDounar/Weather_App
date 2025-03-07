@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:weather/module/home/controller/weather_controller.dart';
+import 'package:weather/module/home/data/weather_model.dart';
+import 'package:weather/module/home/services/weather_services.dart';
 import 'package:weather/module/home/widgets/weather_data.dart';
 
 class WeatherView extends StatefulWidget {
@@ -9,17 +12,53 @@ class WeatherView extends StatefulWidget {
 }
 
 class _WeatherViewState extends State<WeatherView> {
-  bool isPressed = false; // Déclaré ici pour conserver l'état
+  final WeatherServices _weatherServices = WeatherServices();
+  final WeatherController weatherController = WeatherController();
+
+  WeatherModel? weatherModel;
+  bool _isLoading = true;
+  String _errorMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchWeatherData();
+  }
+
+  Future<void> _fetchWeatherData() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+
+    try {
+      final WeatherData = await _weatherServices.getWeatherData();
+      setState(() {
+        weatherModel = WeatherData;
+        _isLoading = false;
+      });
+    } catch (error) {
+      setState(() {
+        _errorMessage = error.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  bool isPressed = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: isPressed ? Colors.black : Colors.white,
       appBar: AppBar(
-        backgroundColor: isPressed ? Colors.black : Colors.white,
+        backgroundColor: const Color.fromARGB(0, 255, 255, 255),
+        elevation: 0,
         leading: IconButton(
           onPressed: () {},
-          icon: Icon(Icons.location_on,
-          color: isPressed ? Colors.white : Colors.black,
+          icon: Icon(
+            Icons.location_on,
+            color: isPressed ? Colors.white : Colors.black,
           ),
         ),
         actions: <Widget>[
@@ -29,20 +68,29 @@ class _WeatherViewState extends State<WeatherView> {
                 isPressed = !isPressed;
               });
             },
-            icon: const Icon(Icons.nightlight_sharp, color: Colors.black),
+            icon: Icon(isPressed ? Icons.sunny : Icons.nightlight_sharp),
+            color: isPressed ? Colors.white : Colors.black,
           ),
         ],
       ),
       body: AnimatedContainer(
         duration: const Duration(milliseconds: 500),
-        color: isPressed ? Colors.black : Colors.white, // Changement de couleur
         child: Center(
-          child: WeatherData(
-            location: 'Rouen',
-            tempature: 8,
-            image: 'assets/json/sun.json',
-            color: isPressed ? Colors.white : Colors.black,
-          ),
+          child:
+              _isLoading
+                  ? CircularProgressIndicator()
+                  : _errorMessage.isNotEmpty
+                  ? Text(_errorMessage)
+                  : weatherModel != null
+                  ? WeatherData(
+                    location: weatherModel!.cityName,
+                    tempature: weatherModel!.temperature.toInt(),
+                    image: weatherController.getWeatherLottie(
+                      weatherModel!.weatherCode,
+                    ),
+                    color: isPressed ? Colors.white : Colors.black,
+                  )
+                  : const Text('no data'),
         ),
       ),
     );

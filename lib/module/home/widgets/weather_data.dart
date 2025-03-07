@@ -30,7 +30,9 @@ class WeatherData extends StatelessWidget {
           fontWeight: FontWeight.w800,
           fontSize: 32,
         ),
+        SizedBox(height: 50),
         Lottie.asset(image),
+        SizedBox(height: 50),
         CustomText.basic(
           text: '$tempature°C',
           color: color,
